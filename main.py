@@ -30,16 +30,19 @@ def is_youtube_video(comment_parent):
     else:
         return False
     
-def get_captions(video_id):
+def get_captions(video_id, redditor, message_subject):
     captions = get_captions_no_quota(video_id)
-    if(captions):
-        return captions, True
-    else:
-        print "No manual captions. Using fallback"
-        captions = get_automatic_captions(video_id)
-        return captions, False
+    try:
+        if(captions):
+            return captions, True
+        else:
+            print "No manual captions. Using fallback"
+            captions = get_automatic_captions(video_id)
+            return captions, False
+    except AttributeError:
+        send_private_message(redditor, message_subject, "***Unable to find captions for the video***")
 
-def send_prive_message(redditor_name, message_subject, message_body):
+def send_private_message(redditor_name, message_subject, message_body):
     redditor_name.message(message_subject, message_body)
 
 def send_batched_private_messages(captions, redditor, message_subject, start_message="", end_message=""):
@@ -52,7 +55,7 @@ def send_batched_private_messages(captions, redditor, message_subject, start_mes
     message_batch.append("".join(char_array[0:]))
 
     for message in reversed(message_batch):
-        send_prive_message(redditor, message_subject, message)
+        send_private_message(redditor, message_subject, message)
 
 #while True:
 inbox = reddit.inbox
@@ -63,8 +66,8 @@ for message in inbox.stream():
     parent = message.submission
     if(isinstance(message, Comment) and (is_youtube_video(parent))):
         video_id = urlparse(parent.url)[4].replace("v=", "")
-        captions, manual_captions = get_captions(video_id)
+        captions, manual_captions = get_captions(video_id, parent.author, parent.title)
         if not manual_captions:
-            send_batched_private_messages(captions, message.author, parent.title, "_*AUTOMATIC CAPTIONS*_")
+            send_batched_private_messages(captions, message.author, parent.title, "***AUTOMATIC CAPTIONS***")
         else:
-            send_batched_private_messages(captions, message.author, parent.title, "_*EN-US CAPTIONS*_")
+            send_batched_private_messages(captions, message.author, parent.title, "***EN-US CAPTIONS***")
