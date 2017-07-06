@@ -41,6 +41,7 @@ def get_captions(video_id, redditor, message_subject):
             return captions, False
     except AttributeError:
         send_private_message(redditor, message_subject, "***Unable to find captions for the video***")
+        return None, False
 
 def send_private_message(redditor_name, message_subject, message_body):
     redditor_name.message(message_subject, message_body)
@@ -67,7 +68,9 @@ for message in inbox.stream():
     if(isinstance(message, Comment) and (is_youtube_video(parent))):
         video_id = urlparse(parent.url)[4].replace("v=", "")
         captions, manual_captions = get_captions(video_id, parent.author, parent.title)
-        if not manual_captions:
+        if (not manual_captions) and (captions is not None):
             send_batched_private_messages(captions, message.author, parent.title, "***AUTOMATIC CAPTIONS***")
-        else:
+        elif captions is not None:
             send_batched_private_messages(captions, message.author, parent.title, "***EN-US CAPTIONS***")
+        #else:
+            #send_private_message(message.author, parent.title, "***Unable to find captions for the video***")
