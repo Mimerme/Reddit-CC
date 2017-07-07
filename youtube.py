@@ -1,5 +1,8 @@
 import xml.etree.ElementTree as ET
 import youtube_dl.youtube_dl.YoutubeDL as ydl
+#for encoding parameters
+import urllib
+#for making the actuall requests
 import urllib2
 from pycaption import WebVTTReader
 
@@ -16,10 +19,21 @@ def get_automatic_captions(video_id):
         tmp_string = tmp_string + caption.get_text() + " "
     return tmp_string
 
+
+#Gets possible captions and returns the first result (it should be the default caption i hope)
+def get_caption_first_language(videoid):
+    list_response = urllib2.urlopen("http://video.google.com/timedtext?type=list&v=" + videoid)
+    caption_list_xml = ET.fromstring(list_response.read())
+    #Gets first node of track under transcript list
+    caption_attrib =  caption_list_xml[0].attrib
+    return caption_attrib['lang_code'], caption_attrib['name']
+
 #Gets the manually added captions
 def get_captions_no_quota(video_id, include_timestamp=False, include_duration=False):
+    caption_language, caption_name = get_caption_first_language(video_id)
     tmp_string = ""
-    response = urllib2.urlopen("http://video.google.com/timedtext?lang=en&v=" + video_id)
+    caption_name = urllib.quote(caption_name)
+    response = urllib2.urlopen("http://video.google.com/timedtext?lang=" + caption_language + "&name=" + caption_name + "&v=" + video_id)
     if(response.info().type == "text/xml"):
         captions_xml = ET.fromstring(response.read())
         for caption in captions_xml.iter():

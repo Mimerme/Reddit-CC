@@ -69,8 +69,8 @@ for message in inbox.stream():
         video_id = urlparse(parent.url)[4].replace("v=", "")
         captions, manual_captions = get_captions(video_id, parent.author, parent.title)
         if (not manual_captions) and (captions is not None):
-            send_batched_private_messages(captions, message.author, parent.title, "***AUTOMATIC CAPTIONS***")
+            send_batched_private_messages(captions, message.author, parent.title, "***AUTOMATIC CAPTIONS*** ")
         elif captions is not None:
-            send_batched_private_messages(captions, message.author, parent.title, "***EN-US CAPTIONS***")
+            send_batched_private_messages(captions, message.author, parent.title, "***EN-US CAPTIONS*** ")
         #else:
             #send_private_message(message.author, parent.title, "***Unable to find captions for the video***")
